@@ -27,6 +27,7 @@ const JdResumeDetail = () => {
   const [showCourses, setShowCourses] = useState(true);
   const [showResumePreview, setShowResumePreview] = useState(true);
   const [baseFontSize, setBaseFontSize] = useState(8.5);
+  const [baseFontFamily, setBaseFontFamily] = useState('Lora');
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -112,7 +113,7 @@ const JdResumeDetail = () => {
 
       const res = await axios.post(
         `${USER_API_END_POINT}/jd-resume/${id}/pdf`,
-        { baseFontSize },
+        { baseFontSize, baseFontFamily },
         { withCredentials: true, responseType: 'blob' }
       );
 
@@ -697,6 +698,27 @@ const JdResumeDetail = () => {
                           </button>
                           {data.AtsResumeJson && (
                             <div className="flex items-center gap-3 flex-wrap">
+                              {/* Dynamic Font Family Selection */}
+                              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2 py-1 rounded-lg text-[10px] sm:text-xs">
+                                <span className="text-gray-500 font-medium select-none">Font:</span>
+                                <select
+                                  value={baseFontFamily}
+                                  onChange={(e) => setBaseFontFamily(e.target.value)}
+                                  className="bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer text-[10px] sm:text-xs"
+                                >
+                                  <option value="Lora">Lora (Serif)</option>
+                                  <option value="Inter">Inter (Sans)</option>
+                                  <option value="Roboto">Roboto (Sans)</option>
+                                  <option value="Merriweather">Merriweather (Serif)</option>
+                                  <option value="Open Sans">Open Sans (Sans)</option>
+                                  <option value="EB Garamond">EB Garamond (Serif)</option>
+                                  <option value="Montserrat">Montserrat (Sans)</option>
+                                  <option value="Poppins">Poppins (Sans)</option>
+                                  <option value="Lato">Lato (Sans)</option>
+                                  <option value="Ubuntu">Ubuntu (Sans)</option>
+                                </select>
+                              </div>
+
                               {/* Dynamic Font Size Control Panel */}
                               <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2 py-1 rounded-lg text-[10px] sm:text-xs">
                                 <span className="text-gray-500 font-medium select-none">Font Size:</span>
@@ -748,7 +770,7 @@ const JdResumeDetail = () => {
                         >
                           <div className="overflow-hidden">
                             <div className="pt-4 border-t border-gray-100 overflow-x-auto">
-                              <AtsResumePreview resumeData={resumeData} baseFontSize={baseFontSize} />
+                              <AtsResumePreview resumeData={resumeData} baseFontSize={baseFontSize} baseFontFamily={baseFontFamily} />
                             </div>
                           </div>
                         </div>

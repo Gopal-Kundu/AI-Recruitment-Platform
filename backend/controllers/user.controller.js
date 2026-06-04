@@ -1033,102 +1033,30 @@ const generateAtsResume = async (req, res) => {
     const { text: rawResumeText, links: extractedLinks } = await extractTextFromPdf(user.profile.resume);
 
     const resumeText = rawResumeText;
-    const jobDescText = jdResume.jobDescription.slice(0, 3500);
-
-    const weakSpotsPrompt = `
-You are an expert ATS parser and career coach.
-Analyze the user's resume against the target Job Description.
-
-User Resume Text:
-${resumeText}
-
-Job Description:
-${jobDescText}
-
-Provide a detailed evaluation in JSON format:
-{
-  "weakSpots": "List of areas where the resume is lacking skills, keywords, or structure relative to the job description."
-}
-
-Return ONLY raw JSON. Do not include markdown code block styling like \`\`\`json or \`\`\`.
-`;
-
-    const weakSpotsResponse = await aiApi(weakSpotsPrompt);
-    const weakSpotsParsed = parseGeminiJSON(weakSpotsResponse);
-    const weakSpots = weakSpotsParsed.weakSpots ?? "None identified.";
+    const jobDescText = jdResume.jobDescription;
 
     const jsonPrompt = `
-You are an Elite ATS Resume Optimization AI, Technical Resume Strategist, and Recruiter Simulation Engine.
+Optimize and enhance the following resume to maximize compatibility with ATS (Applicant Tracking System) algorithms. Identify gaps and areas for improvement to create a highly effective and industry-standard resume. Ensure a seamless match with the job description, highlighting key qualifications and achievements.
+Return most detailed Resume.
 
-Your core directive is to transform the candidate's EXISTING resume into a highly ATS-optimized (95+ score) resume tailored specifically for the provided Job Description.
+CRITICAL BULLET POINTS REQUIREMENT:
+1. You MUST NOT skip, condense, or omit the "bullets" array for any project under "projects" or any role under "experience".
+2. Specifically for each project in "projects", you must provide at least 3 to 4 detailed, ATS-optimized bullet points describing design decisions, technologies utilized, challenges solved, and realistic metrics of success.
+3. Under no circumstances should the "bullets" array of a project be empty, stubbed, or missing. Every project must be fully populated with detailed descriptions.
 
-==================================================
 CANDIDATE RESUME
-==================================================
 ${resumeText}
 
-==================================================
 EXTRACTED LINKS FROM CANDIDATE RESUME
-==================================================
 ${extractedLinks && extractedLinks.length > 0 ? extractedLinks.join('\n') : 'None identified'}
 
-==================================================
 TARGET JOB DESCRIPTION
-==================================================
 ${jobDescText}
 
-==================================================
-IDENTIFIED WEAK SPOTS TO IMPROVE
-==================================================
-${weakSpots}
-
-==================================================
-CORE OBJECTIVES & STRATEGY (TARGET SCORE: 95+)
-==================================================
-
-1. MAXIMIZE KEYWORD MATCH & FIX WEAK SPOTS (CRITICAL):
-- Extract ALL technical skills, tools, frameworks, databases, and methodologies from the Job Description.
-- Address the IDENTIFIED WEAK SPOTS by naturally integrating those missing skills and requirements into the candidate's projects and experience.
-- You MUST inject these EXACT keywords into the candidate's 'Skills', 'Summary', 'Experience', and 'Projects' sections. Do not change the spelling of JD keywords.
-
-2. AGGRESSIVE PROJECT ENHANCEMENT:
-- Projects are the primary vehicle for scoring 95+. You MUST rewrite and expand the candidate's project descriptions.
-- Align the project outcomes, architectures, and features directly with the responsibilities mentioned in the JD.
-- Add realistic, quantifiable metrics (e.g., "improved query efficiency by 35%", "handled 1000+ concurrent users", "reduced load time by 40%").
-
-3. STRATEGIC SKILL ADDITION:
-- If the JD requires specific tools/skills that are realistically learnable or commonly paired with the candidate's existing tech stack (e.g., JD asks for Docker/AWS, and candidate is a MERN developer), you MUST add them to the Skills section.
-- You MUST mention these newly added skills realistically in project deployments, CI/CD pipelines, or architectural enhancements.
-
-4. LINK MAPPING & PRESERVATION:
-- Map and preserve the actual candidate's contact information (email, phone, linkedin, github, portfolio) from the candidate's resume/links. Do not use placeholder contact info unless missing.
-- For each project in the "projects" list, you MUST include "github" and "liveLink" fields. Match them with any relevant project links found in the candidate's resume or EXTRACTED LINKS. If no specific repository or deployment link can be found or inferred for a project, leave them as empty strings "".
-
-5. MAINTAIN BELIEVABILITY:
-- ABSOLUTELY NEVER invent fake jobs, degrees, companies, or dates.
-- You ARE explicitly authorized to logically upgrade existing projects with realistic industry-standard features (e.g., adding JWT authentication, Redis caching, pagination, Docker containerization, REST API optimization) to match the JD requirements perfectly.
-
-==================================================
-BULLET POINT RULES (EXPERIENCE & PROJECTS)
-==================================================
-- Every project/experience must have 3-4 highly technical bullet points.
-- Start each bullet with a strong action verb (e.g., Architected, Engineered, Optimized, Spearheaded, Implemented).
-- Formula to use: [Action Word] + [JD Keyword/Technology] + [What it did] + [Measurable Impact].
-
-==================================================
-OUTPUT RULES
-==================================================
-- Return ONLY valid, raw JSON.
-- NO markdown formatting, NO backticks (\`\`\`), NO explanations before or after the JSON.
-- Escape all quotes properly.
-- If a section does not exist in the candidate's background and cannot be realistically adapted, return an empty array [].
-
-==================================================
 RETURN EXACTLY THIS JSON FORMAT
-==================================================
 {
   "name": "Candidate Full Name",
-  "atsScore": 96,
+  "atsScore": score of new resume in number,
   "contact": {
     "phone": "+91-XXXXXXXXXX",
     "email": "email@example.com",
@@ -1222,7 +1150,7 @@ const generateResumePdf = async (req, res) => {
   let browser = null;
   try {
     const { id } = req.params;
-    const { baseFontSize = 8.5 } = req.body;
+    const { baseFontSize = 8.5, baseFontFamily = 'Lora' } = req.body;
 
     const { default: puppeteer } = await import("puppeteer-core");
 
@@ -1240,19 +1168,46 @@ const generateResumePdf = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid resume JSON stored" });
     }
 
-    const parseLinkMarkdownHtml = (val) => {
+    const getFontFamilyCSS = (fontName) => {
+      switch(fontName) {
+        case 'Inter': return '"Inter", sans-serif';
+        case 'Roboto': return '"Roboto", sans-serif';
+        case 'Merriweather': return '"Merriweather", serif';
+        case 'Open Sans': return '"Open Sans", sans-serif';
+        case 'EB Garamond': return '"EB Garamond", serif';
+        case 'Montserrat': return '"Montserrat", sans-serif';
+        case 'Poppins': return '"Poppins", sans-serif';
+        case 'Lato': return '"Lato", sans-serif';
+        case 'Ubuntu': return '"Ubuntu", sans-serif';
+        case 'Lora':
+        default:
+          return '"Lora", Georgia, serif';
+      }
+    };
+
+    const isSerif = (fontName) => ['Lora', 'Merriweather', 'EB Garamond'].includes(fontName);
+
+    const bodyFont = getFontFamilyCSS(baseFontFamily);
+    const nameFont = isSerif(baseFontFamily)
+      ? "'Playfair Display', Georgia, serif"
+      : bodyFont;
+    const headerFont = isSerif(baseFontFamily)
+      ? "'Inter', sans-serif"
+      : bodyFont;
+
+    const parseLinkMarkdownHtml = (val, fontFamily) => {
       if (!val) return '';
       const match = val.match(/\[([^\]]+)\]\(([^)]+)\)/);
       if (match) {
         const cleanText = match[1].replace(/^https?:\/\/(www\.)?/, '');
-        return `<a href="${match[2]}" target="_blank" style="text-decoration:none; color:inherit">${cleanText}</a>`;
+        return `<a href="${match[2]}" target="_blank" style="text-decoration:none; color:inherit; font-family:${fontFamily}">${cleanText}</a>`;
       }
       let url = val;
       if (!url.startsWith('http') && (url.includes('.com') || url.includes('.org') || url.includes('.me') || url.includes('.in') || url.includes('github.io'))) {
         url = 'https://' + url;
       }
       const cleanText = val.replace(/^https?:\/\/(www\.)?/, '');
-      return `<a href="${url}" target="_blank" style="text-decoration:none; color:inherit">${cleanText}</a>`;
+      return `<a href="${url}" target="_blank" style="text-decoration:none; color:inherit; font-family:${fontFamily}">${cleanText}</a>`;
     };
 
     const fs = baseFontSize;
@@ -1261,7 +1216,7 @@ const generateResumePdf = async (req, res) => {
     if (c.phone) {
       const cleanPhone = c.phone.replace(/[^0-9]/g, '');
       contactItems.push(`
-        <a href="https://wa.me/${cleanPhone}" target="_blank" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px">
+        <a href="https://wa.me/${cleanPhone}" target="_blank" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
           ${c.phone}
         </a>
@@ -1269,7 +1224,7 @@ const generateResumePdf = async (req, res) => {
     }
     if (c.email) {
       contactItems.push(`
-        <a href="mailto:${c.email}" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px">
+        <a href="mailto:${c.email}" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
           ${c.email}
         </a>
@@ -1277,32 +1232,32 @@ const generateResumePdf = async (req, res) => {
     }
     if (c.linkedin) {
       contactItems.push(`
-        <span style="display:inline-flex; align-items:center; gap:4px">
+        <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-          ${parseLinkMarkdownHtml(c.linkedin)}
+          ${parseLinkMarkdownHtml(c.linkedin, headerFont)}
         </span>
       `);
     }
     if (c.github) {
       contactItems.push(`
-        <span style="display:inline-flex; align-items:center; gap:4px">
+        <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-          ${parseLinkMarkdownHtml(c.github)}
+          ${parseLinkMarkdownHtml(c.github, headerFont)}
         </span>
       `);
     }
     if (c.portfolio) {
       contactItems.push(`
-        <span style="display:inline-flex; align-items:center; gap:4px">
+        <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          ${parseLinkMarkdownHtml(c.portfolio)}
+          ${parseLinkMarkdownHtml(c.portfolio, headerFont)}
         </span>
       `);
     }
 
     if (c.codingprofile) {
       contactItems.push(`
-    <span style="display:inline-flex; align-items:center; gap:4px">
+    <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
       <svg 
         viewBox="0 0 24 24" 
         width="${fs - 0.5}pt" 
@@ -1318,7 +1273,7 @@ const generateResumePdf = async (req, res) => {
         <polyline points="8 6 2 12 8 18"></polyline>
       </svg>
 
-      ${parseLinkMarkdownHtml(c.codingprofile)}
+      ${parseLinkMarkdownHtml(c.codingprofile, headerFont)}
     </span>
   `);
     }
@@ -1326,7 +1281,7 @@ const generateResumePdf = async (req, res) => {
     // 3. Build a self-contained HTML page that mirrors AtsResumePreview
     const sectionRule = (title) => `
       <div style="margin-bottom:2px; margin-top:6px">
-        <div style="font-family:Inter,sans-serif; font-weight:bold; font-size:${fs + 0.5}pt;
+        <div style="font-family:${headerFont}; font-weight:bold; font-size:${fs + 0.5}pt;
                     letter-spacing:0.5px; text-transform:uppercase">${title}</div>
         <hr style="border:none; border-top:0.8px solid #111; margin:2px 0 4px 0" />
       </div>`;
@@ -1339,14 +1294,14 @@ const generateResumePdf = async (req, res) => {
     // Name
     body += `<div style="text-align:center; margin-bottom:2px">
       <span style="font-size:${fs * 2.1}pt; font-weight:bold;
-                   font-family:'Playfair Display',Georgia,serif;
+                   font-family:${nameFont};
                    letter-spacing:1.5px; text-transform:uppercase">${resumeData.name || ""}</span>
     </div>`;
 
     // Contact
     if (contactItems.length > 0) {
       body += `<div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:6px; font-size:${fs - 0.5}pt;
-                           font-family:Inter,sans-serif; color:#444; margin-bottom:8px">
+                           font-family:${headerFont}; color:#444; margin-bottom:8px">
         ${contactItems.join(' <span style="color:#ccc; margin:0 2px">|</span> ')}
       </div>`;
     }
@@ -1398,7 +1353,7 @@ const generateResumePdf = async (req, res) => {
         nameAndLinks += `</span>`;
 
         body += `<div style="margin-bottom:6px">
-          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
+          <div style="display:flex; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
             ${nameAndLinks}
             <span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj.technologies}</span>
           </div>
@@ -1463,11 +1418,11 @@ const generateResumePdf = async (req, res) => {
 <head>
   <meta charset="UTF-8" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: Lora, Georgia, serif;
+      font-family: ${bodyFont};
       font-size: ${fs}pt;
       line-height: 1.25;
       color: #111;
@@ -1479,13 +1434,35 @@ const generateResumePdf = async (req, res) => {
 <body>${body}</body>
 </html>`;
 
-    // 4. Launch puppeteer-core with system Chrome
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
+    // 4. Launch puppeteer-core with system Chrome (fallback for Windows dev)
+    const fsLib = require("fs");
+    const pathLib = require("path");
+    let execPath = null;
+
+    if (process.platform === 'win32') {
+      const path1 = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+      const path2 = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+      const path3 = pathLib.join(process.env.USERPROFILE || "", "AppData\\Local\\Google\\Chrome\\Application\\chrome.exe");
+      
+      if (fsLib.existsSync(path1)) {
+        execPath = path1;
+      } else if (fsLib.existsSync(path2)) {
+        execPath = path2;
+      } else if (fsLib.existsSync(path3)) {
+        execPath = path3;
+      }
+    } else {
+      execPath = await chromium.executablePath();
+    }
+
+    const launchOptions = {
+      args: process.platform === 'win32' ? ['--no-sandbox', '--disable-setuid-sandbox'] : chromium.args,
+      defaultViewport: process.platform === 'win32' ? null : chromium.defaultViewport,
+      executablePath: execPath || undefined,
+      headless: process.platform === 'win32' ? true : chromium.headless,
+    };
+
+    browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
@@ -1600,56 +1577,31 @@ const optimizeJdResumeJson = async (req, res) => {
     const jobDescText = jdResume.jobDescription.slice(0, 3500);
 
     const jsonPrompt = `
-You are an Elite ATS Resume Optimization AI, Technical Resume Strategist, and Recruiter Simulation Engine.
+Optimize and enhance the following resume to maximize compatibility with ATS (Applicant Tracking System) algorithms. Identify gaps and areas for improvement to create a highly effective and industry-standard resume. Ensure a seamless match with the job description, highlighting key qualifications and achievements.
+Return most detailed Resume.
 
-Your core directive is to optimize the provided resume JSON to make it highly ATS-friendly (95+ score) specifically tailored for the target Job Description.
+CRITICAL BULLET POINTS REQUIREMENT:
+1. You MUST NOT skip, condense, or omit the "bullets" array for any project under "projects" or any role under "experience".
+2. Specifically for each project in "projects", you must provide at least 3 to 4 detailed, ATS-optimized bullet points describing design decisions, technologies utilized, challenges solved, and realistic metrics of success.
+3. Under no circumstances should the "bullets" array of a project be empty, stubbed, or missing. Every project must be fully populated with detailed descriptions.
 
-==================================================
-CURRENT RESUME JSON
-==================================================
+CANDIDATE RESUME (JSON)
 ${AtsResumeJson}
 
-==================================================
 TARGET JOB DESCRIPTION
-==================================================
 ${jobDescText}
 
-==================================================
-CORE OBJECTIVES & STRATEGY (TARGET SCORE: 95+)
-==================================================
-1. Naturally integrate missing skills, keywords, and frameworks from the Job Description into the skills, summary, experience, and projects of the JSON structure.
-2. Rewrite and expand project descriptions and experience bullet points to align with the responsibilities in the Job Description, incorporating quantitative metrics where appropriate (e.g. "improved query efficiency by 35%", "reduced load time by 40%").
-3. Ensure contact info and basic structure remains intact. Do not change the JSON schema.
-4. If a section does not exist in the candidate's background and cannot be realistically adapted, return an empty array [].
-
-==================================================
-BULLET POINT RULES (EXPERIENCE & PROJECTS)
-==================================================
-- Every project/experience must have 3-4 highly technical bullet points, if user input has many points, experience then optimized them sumup them.
-- Start each bullet with a strong action verb (e.g., Architected, Engineered, Optimized, Spearheaded, Implemented).
-- Formula to use: [Action Word] + [JD Keyword/Technology] + [What it did] + [Measurable Impact].
--whenever possible use numbers, measures to pass ats system.
-
-==================================================
-OUTPUT RULES
-==================================================
-- Return ONLY valid, raw JSON.
-- NO markdown formatting, NO backticks (\`\`\`), NO explanations before or after the JSON.
-- Escape all quotes properly.
-
-==================================================
-RETURN EXACTLY THIS JSON FORMAT (include "atsScore" key representing the new estimated matching score out of 100):
-==================================================
+RETURN EXACTLY THIS JSON FORMAT
 {
   "name": "Candidate Full Name",
-  "atsScore": 96,
+  "atsScore": score of new resume in number,
   "contact": {
     "phone": "+91-XXXXXXXXXX",
     "email": "email@example.com",
     "linkedin": "[linkedin.com/in/profile](https://linkedin.com/in/profile)",
     "github": "[github.com/username](https://github.com/username)",
     "portfolio": "https://anyName",
-    "codingprofile": "https://..."
+    "codingprofile": "https://...",
   },
   "summary": "High-impact, keyword-rich professional summary mirroring the JD requirements.",
   "skills": [
@@ -1672,7 +1624,7 @@ RETURN EXACTLY THIS JSON FORMAT (include "atsScore" key representing the new est
   "projects": [
     {
       "name": "Project Name",
-      "technologies": "3-4 most relevent technologies used",
+      "technologies": "[3-4 most relevent technologies used]",
       "github": "https://github.com/...",
       "liveLink": "https://...",
       "bullets": [
