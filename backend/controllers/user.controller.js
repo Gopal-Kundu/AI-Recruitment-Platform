@@ -1353,7 +1353,7 @@ const generateResumePdf = async (req, res) => {
         nameAndLinks += `</span>`;
 
         body += `<div style="margin-bottom:6px">
-          <div style="display:flex; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
             ${nameAndLinks}
             <span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj.technologies}</span>
           </div>
