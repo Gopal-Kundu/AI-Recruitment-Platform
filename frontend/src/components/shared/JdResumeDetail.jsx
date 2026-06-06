@@ -706,16 +706,23 @@ const JdResumeDetail = () => {
                                   onChange={(e) => setBaseFontFamily(e.target.value)}
                                   className="bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer text-[10px] sm:text-xs"
                                 >
-                                  <option value="Lora">Lora (Serif)</option>
-                                  <option value="Inter">Inter (Sans)</option>
-                                  <option value="Roboto">Roboto (Sans)</option>
-                                  <option value="Merriweather">Merriweather (Serif)</option>
-                                  <option value="Open Sans">Open Sans (Sans)</option>
-                                  <option value="EB Garamond">EB Garamond (Serif)</option>
-                                  <option value="Montserrat">Montserrat (Sans)</option>
-                                  <option value="Poppins">Poppins (Sans)</option>
-                                  <option value="Lato">Lato (Sans)</option>
-                                  <option value="Ubuntu">Ubuntu (Sans)</option>
+                                  <option value="Lora">Lora</option>
+                                  <option value="Inter">Inter</option>
+                                  <option value="Roboto">Roboto</option>
+                                  <option value="Merriweather">Merriweather</option>
+                                  <option value="Open Sans">Open Sans</option>
+                                  <option value="EB Garamond">EB Garamond</option>
+                                  <option value="Montserrat">Montserrat</option>
+                                  <option value="Poppins">Poppins</option>
+                                  <option value="Lato">Lato</option>
+                                  <option value="Ubuntu">Ubuntu</option>
+                                  <option value="Nunito">Nunito</option>
+                                  <option value="Raleway">Raleway</option>
+                                  <option value="PT Sans">PT Sans</option>
+                                  <option value="PT Serif">PT Serif</option>
+                                  <option value="Playfair Display">Playfair Display</option>
+                                  <option value="Fira Sans">Fira Sans</option>
+                                  <option value="Oswald">Oswald</option>
                                 </select>
                               </div>
 

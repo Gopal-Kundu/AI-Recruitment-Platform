@@ -4,11 +4,11 @@ import { useParams } from "react-router-dom";
 
 function ApplicationPage() {
   const { id } = useParams();
-  const applications = useSelector((state) => state.applicant.applicants);
+  const applications = useSelector((state) => state?.applicant?.applicants);
   const user = applications?.find((app) => app._id === id);
 
   const skillsArray =
-    user?.profile?.skills?.length > 0 ? user.profile.skills.split(",") : [];
+    user?.profile?.skills?.length > 0 ? user?.profile?.skills?.split(",") : [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

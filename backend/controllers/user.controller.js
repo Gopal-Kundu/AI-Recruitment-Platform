@@ -1036,73 +1036,88 @@ const generateAtsResume = async (req, res) => {
     const jobDescText = jdResume.jobDescription;
 
     const jsonPrompt = `
-Optimize and enhance the following resume to maximize compatibility with ATS (Applicant Tracking System) algorithms. Identify gaps and areas for improvement to create a highly effective and industry-standard resume. Ensure a seamless match with the job description, highlighting key qualifications and achievements.
-Return most detailed Resume.
+You are an expert Applicant Tracking System (ATS) optimization specialist and a veteran recruiter. Your task is to rewrite the candidate's resume so that it aligns COMPLETELY with the target Job Description and Company (if provided). Focus on generating a highly detailed, comprehensive, and keyword-rich resume that passes advanced ATS filters with a near-perfect match rate.
 
-CRITICAL BULLET POINTS REQUIREMENT:
-1. You MUST NOT skip, condense, or omit the "bullets" array for any project under "projects" or any role under "experience".
-2. Specifically for each project in "projects", you must provide at least 3 to 4 detailed, ATS-optimized bullet points describing design decisions, technologies utilized, challenges solved, and realistic metrics of success.
-3. Under no circumstances should the "bullets" array of a project be empty, stubbed, or missing. Every project must be fully populated with detailed descriptions.
-
-CANDIDATE RESUME
-${resumeText}
-
-EXTRACTED LINKS FROM CANDIDATE RESUME
-${extractedLinks && extractedLinks.length > 0 ? extractedLinks.join('\n') : 'None identified'}
-
-TARGET JOB DESCRIPTION
+TARGET COMPANY NAME: ${jdResume.companyName || 'Not Specified'}
+TARGET JOB DESCRIPTION:
 ${jobDescText}
 
-RETURN EXACTLY THIS JSON FORMAT
+INSTRUCTIONS FOR ATS OPTIMIZATION:
+1. COMPLETE ALIGNMENT & KEYWORDS:
+   - Carefully extract all technical skills, soft skills, domain keywords, tools, frameworks, methodologies, and terminology from the Target Job Description.
+   - Infuse these strong keywords naturally but heavily throughout the professional summary, technical skills categories, experience bullet points, and projects.
+   - If a Target Company Name is provided, tailor the resume's tone, emphasis, and focus areas to align with the company's industry, culture, tech stack, and goals.
+
+2. DEPTH & DETAIL REQUIREMENT:
+   - Ensure the resume is extremely detailed and robust. Avoid high-level summaries or brief bullet points.
+   - For every single role in "experience" and project in "projects", expand and rewrite their descriptions to explain what was built, how it was built (technologies, architecture, design decisions), and the value it delivered.
+   - Every experience and project MUST have at least 3 to 4 detailed, fully-formed bullet points. Do NOT leave them empty, condensed, or stubbed.
+
+3. REALISTIC & DIGESTIBLE METRICS:
+   - Do NOT use exaggerated, implausible, or excessively high-fi metrics (such as "saved $20M in costs" or "improved response times by 99%" on a side project or mid-level job) that would trigger suspicion from a recruiter.
+   - Instead, use realistic, believable, and digestible metrics (e.g., "improved query execution times by 15-20%", "achieved 90%+ unit test coverage", "reduced API latency by 120ms", "boosted page load speed by 25%", "successfully managed a repository with 50+ active daily commits"). Keep them grounded, context-appropriate, and professional.
+
+CANDIDATE RESUME:
+${resumeText}
+
+EXTRACTED LINKS FROM CANDIDATE RESUME:
+${extractedLinks && extractedLinks.length > 0 ? extractedLinks.join('\n') : 'None identified'}
+
+RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, just the raw JSON structure):
 {
   "name": "Candidate Full Name",
-  "atsScore": score of new resume in number,
+  "atsScore": 98,
   "contact": {
     "phone": "+91-XXXXXXXXXX",
     "email": "email@example.com",
     "linkedin": "[linkedin.com/in/profile](https://linkedin.com/in/profile)",
     "github": "[github.com/username](https://github.com/username)",
-    "portfolio": "https://anyName",
-    "codingprofile": "https://...",
+    "portfolio": "https://...",
+    "codingprofile": "https://..."
   },
-  "summary": "High-impact, keyword-rich professional summary mirroring the JD requirements.",
+  "summary": "Detailed, high-impact, keyword-rich professional summary mirroring the target JD and aligning with the company.",
   "skills": [
     {
-      "category": "Frontend",
-      "items": "React.js, Redux, [INJECT JD KEYWORDS HERE]"
+      "category": "Frontend/Backend/Database/DevOps/Languages etc.",
+      "items": "React.js, Redux, and other key target skills extracted from the JD"
     }
   ],
   "experience": [
     {
       "company": "Company Name",
-      "location": "City",
-      "role": "Role",
+      "location": "Location",
+      "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "Strong ATS optimized bullet highlighting JD alignment and metrics."
+        "First highly detailed, ATS-keyword-optimized bullet point aligned with the target JD and company using a realistic, digestible metric.",
+        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
+        "Third detailed bullet point explaining problem-solving and collaboration details.",
+        "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
       ]
     }
   ],
   "projects": [
     {
       "name": "Project Name",
-      "technologies": "[3-4 most relevent technologies used]",
+      "technologies": "React, Node.js, MongoDB, TailwindCSS, etc.",
       "github": "https://github.com/...",
       "liveLink": "https://...",
       "bullets": [
-        "Engineered [feature] utilizing [JD Keyword] to solve [problem], achieving [realistic metric].",
-        "Enhanced system performance by integrating [JD Skill/Tool]..."
+        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using JD-specific keywords.",
+        "Second detailed project bullet outlining technologies, APIs, database integration, or state management details.",
+        "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
+        "Fourth detailed project bullet (highly recommended for depth) demonstrating specific implementation challenges overcome."
       ]
     }
   ],
   "achievements": [
-    "Achievement text"
+    "Achievement text aligned with industry success and target keywords"
   ],
   "education": [
     {
       "institution": "University Name",
       "location": "City",
-      "degree": "Degree Name | CGPA: X.X",
+      "degree": "Degree Name | CGPA: X.X or Percentage",
       "dates": "Month Year - Month Year"
     }
   ]
@@ -1179,21 +1194,26 @@ const generateResumePdf = async (req, res) => {
         case 'Poppins': return '"Poppins", sans-serif';
         case 'Lato': return '"Lato", sans-serif';
         case 'Ubuntu': return '"Ubuntu", sans-serif';
+        case 'Nunito': return '"Nunito", sans-serif';
+        case 'Raleway': return '"Raleway", sans-serif';
+        case 'PT Sans': return '"PT Sans", sans-serif';
+        case 'PT Serif': return '"PT Serif", serif';
+        case 'Playfair Display': return '"Playfair Display", serif';
+        case 'Fira Sans': return '"Fira Sans", sans-serif';
+        case 'Oswald': return '"Oswald", sans-serif';
         case 'Lora':
         default:
           return '"Lora", Georgia, serif';
       }
     };
 
-    const isSerif = (fontName) => ['Lora', 'Merriweather', 'EB Garamond'].includes(fontName);
+    const isSerif = (fontName) => ['Lora', 'Merriweather', 'EB Garamond', 'PT Serif', 'Playfair Display'].includes(fontName);
 
     const bodyFont = getFontFamilyCSS(baseFontFamily);
     const nameFont = isSerif(baseFontFamily)
       ? "'Playfair Display', Georgia, serif"
       : bodyFont;
-    const headerFont = isSerif(baseFontFamily)
-      ? "'Inter', sans-serif"
-      : bodyFont;
+    const headerFont = bodyFont;
 
     const parseLinkMarkdownHtml = (val, fontFamily) => {
       if (!val) return '';
@@ -1211,51 +1231,51 @@ const generateResumePdf = async (req, res) => {
     };
 
     const fs = baseFontSize;
-    const c = resumeData.contact || {};
+    const c = resumeData?.contact || {};
     const contactItems = [];
-    if (c.phone) {
+    if (c?.phone) {
       const cleanPhone = c.phone.replace(/[^0-9]/g, '');
       contactItems.push(`
         <a href="https://wa.me/${cleanPhone}" target="_blank" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-          ${c.phone}
+          ${c?.phone}
         </a>
       `);
     }
-    if (c.email) {
+    if (c?.email) {
       contactItems.push(`
         <a href="mailto:${c.email}" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-          ${c.email}
+          ${c?.email}
         </a>
       `);
     }
-    if (c.linkedin) {
+    if (c?.linkedin) {
       contactItems.push(`
         <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-          ${parseLinkMarkdownHtml(c.linkedin, headerFont)}
+          ${parseLinkMarkdownHtml(c?.linkedin, headerFont)}
         </span>
       `);
     }
-    if (c.github) {
+    if (c?.github) {
       contactItems.push(`
         <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-          ${parseLinkMarkdownHtml(c.github, headerFont)}
+          ${parseLinkMarkdownHtml(c?.github, headerFont)}
         </span>
       `);
     }
-    if (c.portfolio) {
+    if (c?.portfolio) {
       contactItems.push(`
         <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
           <svg viewBox="0 0 24 24" width="${fs - 0.5}pt" height="${fs - 0.5}pt" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          ${parseLinkMarkdownHtml(c.portfolio, headerFont)}
+          ${parseLinkMarkdownHtml(c?.portfolio, headerFont)}
         </span>
       `);
     }
 
-    if (c.codingprofile) {
+    if (c?.codingprofile) {
       contactItems.push(`
     <span style="display:inline-flex; align-items:center; gap:4px; font-family:${headerFont}">
       <svg 
@@ -1273,7 +1293,7 @@ const generateResumePdf = async (req, res) => {
         <polyline points="8 6 2 12 8 18"></polyline>
       </svg>
 
-      ${parseLinkMarkdownHtml(c.codingprofile, headerFont)}
+      ${parseLinkMarkdownHtml(c?.codingprofile, headerFont)}
     </span>
   `);
     }
@@ -1295,7 +1315,7 @@ const generateResumePdf = async (req, res) => {
     body += `<div style="text-align:center; margin-bottom:2px">
       <span style="font-size:${fs * 2.1}pt; font-weight:bold;
                    font-family:${nameFont};
-                   letter-spacing:1.5px; text-transform:uppercase">${resumeData.name || ""}</span>
+                   letter-spacing:1.5px; text-transform:uppercase">${resumeData?.name || ""}</span>
     </div>`;
 
     // Contact
@@ -1307,47 +1327,47 @@ const generateResumePdf = async (req, res) => {
     }
 
     // Summary
-    if (resumeData.summary) {
+    if (resumeData?.summary) {
       body += sectionRule("Summary");
-      body += `<p style="font-size:${fs}pt; margin-bottom:6px; text-align:justify">${resumeData.summary}</p>`;
+      body += `<p style="font-size:${fs}pt; margin-bottom:6px; text-align:justify">${resumeData?.summary}</p>`;
     }
 
     // Skills
-    if (resumeData.skills?.length > 0) {
+    if (resumeData?.skills?.length > 0) {
       body += sectionRule("Technical Skills");
       body += `<div style="margin-bottom:6px">`;
       resumeData.skills.forEach((s) => {
-        body += `<div style="font-size:${fs}pt; margin-bottom:2px"><strong>${s.category}:</strong> ${s.items}</div>`;
+        body += `<div style="font-size:${fs}pt; margin-bottom:2px"><strong>${s?.category || ''}:</strong> ${s?.items || ''}</div>`;
       });
       body += `</div>`;
     }
 
     // Experience
-    if (resumeData.experience?.length > 0) {
+    if (resumeData?.experience?.length > 0) {
       body += sectionRule("Experience");
       resumeData.experience.forEach((exp) => {
         body += `<div style="margin-bottom:6px">
           <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:${fs}pt">
-            <span>${exp.company}</span>
-            <span style="font-weight:normal; font-size:${fs - 0.5}pt">${exp.dates}</span>
+            <span>${exp?.company || ''}</span>
+            <span style="font-weight:normal; font-size:${fs - 0.5}pt">${exp?.dates || ''}</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-style:italic; font-size:${fs - 0.5}pt; margin-bottom:2px">
-            <span>${exp.role}</span><span>${exp.location}</span>
+            <span>${exp?.role || ''}</span><span>${exp?.location || ''}</span>
           </div>
-          ${bulletList(exp.bullets)}
+          ${bulletList(exp?.bullets)}
         </div>`;
       });
     }
 
     // Projects
-    if (resumeData.projects?.length > 0) {
+    if (resumeData?.projects?.length > 0) {
       body += sectionRule("Projects");
       resumeData.projects.forEach((proj) => {
-        let nameAndLinks = `<span>${proj.name}`;
-        if (proj.github) {
+        let nameAndLinks = `<span>${proj?.name || ''}`;
+        if (proj?.github) {
           nameAndLinks += ` <span style="font-weight:normal; color:#ccc; margin:0 4px">|</span> <a href="${proj.github}" target="_blank" style="font-weight:normal; font-size:${fs - 0.5}pt; color:#6b21a8; text-decoration:underline">GitHub</a>`;
         }
-        if (proj.liveLink) {
+        if (proj?.liveLink) {
           nameAndLinks += ` <span style="font-weight:normal; color:#ccc; margin:0 4px">|</span> <a href="${proj.liveLink}" target="_blank" style="font-weight:normal; font-size:${fs - 0.5}pt; color:#6b21a8; text-decoration:underline">Live Link</a>`;
         }
         nameAndLinks += `</span>`;
@@ -1355,21 +1375,21 @@ const generateResumePdf = async (req, res) => {
         body += `<div style="margin-bottom:6px">
           <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
             ${nameAndLinks}
-            <span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj.technologies}</span>
+            <span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj?.technologies || ''}</span>
           </div>
-          ${bulletList(proj.bullets)}
+          ${bulletList(proj?.bullets)}
         </div>`;
       });
     }
 
     // Achievements
-    if (resumeData.achievements?.length > 0) {
+    if (resumeData?.achievements?.length > 0) {
       body += sectionRule("Achievements");
-      body += `<div style="margin-bottom:6px">${bulletList(resumeData.achievements)}</div>`;
+      body += `<div style="margin-bottom:6px">${bulletList(resumeData?.achievements)}</div>`;
     }
 
     // Education
-    if (resumeData.education?.length > 0) {
+    if (resumeData?.education?.length > 0) {
       body += sectionRule("Education");
 
       resumeData.education.forEach((edu) => {
@@ -1384,7 +1404,7 @@ const generateResumePdf = async (req, res) => {
             font-size:${fs}pt
           "
         >
-          <span>${edu.institution}</span>
+          <span>${edu?.institution || ''}</span>
 
           <span 
             style="
@@ -1392,7 +1412,7 @@ const generateResumePdf = async (req, res) => {
               font-size:${fs - 0.5}pt
             "
           >
-            ${edu.dates}
+            ${edu?.dates || ''}
           </span>
         </div>
 
@@ -1404,8 +1424,8 @@ const generateResumePdf = async (req, res) => {
             font-size:${fs - 0.5}pt
           "
         >
-          <span>${edu.degree}</span>
-          <span>${edu.location}</span>
+          <span>${edu?.degree || ''}</span>
+          <span>${edu?.location || ''}</span>
         </div>
 
       </div>
@@ -1418,7 +1438,7 @@ const generateResumePdf = async (req, res) => {
 <head>
   <meta charset="UTF-8" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Ubuntu:wght@400;500;700&family=Nunito:wght@400;500;700&family=Raleway:wght@400;500;700&family=PT+Sans:wght@400;700&family=PT+Serif:wght@400;700&family=Fira+Sans:wght@400;500;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -1577,70 +1597,85 @@ const optimizeJdResumeJson = async (req, res) => {
     const jobDescText = jdResume.jobDescription.slice(0, 3500);
 
     const jsonPrompt = `
-Optimize and enhance the following resume to maximize compatibility with ATS (Applicant Tracking System) algorithms. Identify gaps and areas for improvement to create a highly effective and industry-standard resume. Ensure a seamless match with the job description, highlighting key qualifications and achievements.
-Return most detailed Resume.
+You are an expert Applicant Tracking System (ATS) optimization specialist and a veteran recruiter. Your task is to optimize the candidate's existing resume JSON so that it aligns COMPLETELY with the target Job Description and Company (if provided). Focus on generating a highly detailed, comprehensive, and keyword-rich resume that passes advanced ATS filters with a near-perfect match rate.
 
-CRITICAL BULLET POINTS REQUIREMENT:
-1. You MUST NOT skip, condense, or omit the "bullets" array for any project under "projects" or any role under "experience".
-2. Specifically for each project in "projects", you must provide at least 3 to 4 detailed, ATS-optimized bullet points describing design decisions, technologies utilized, challenges solved, and realistic metrics of success.
-3. Under no circumstances should the "bullets" array of a project be empty, stubbed, or missing. Every project must be fully populated with detailed descriptions.
-
-CANDIDATE RESUME (JSON)
-${AtsResumeJson}
-
-TARGET JOB DESCRIPTION
+TARGET COMPANY NAME: ${jdResume.companyName || 'Not Specified'}
+TARGET JOB DESCRIPTION:
 ${jobDescText}
 
-RETURN EXACTLY THIS JSON FORMAT
+INSTRUCTIONS FOR ATS OPTIMIZATION:
+1. COMPLETE ALIGNMENT & KEYWORDS:
+   - Carefully extract all technical skills, soft skills, domain keywords, tools, frameworks, methodologies, and terminology from the Target Job Description.
+   - Infuse these strong keywords naturally but heavily throughout the professional summary, technical skills categories, experience bullet points, and projects.
+   - If a Target Company Name is provided, tailor the resume's tone, emphasis, and focus areas to align with the company's industry, culture, tech stack, and goals.
+
+2. DEPTH & DETAIL REQUIREMENT:
+   - Ensure the resume is extremely detailed and robust. Avoid high-level summaries or brief bullet points.
+   - For every single role in "experience" and project in "projects", expand and rewrite their descriptions to explain what was built, how it was built (technologies, architecture, design decisions), and the value it delivered.
+   - Every experience and project MUST have at least 3 to 4 detailed, fully-formed bullet points. Do NOT leave them empty, condensed, or stubbed.
+
+3. REALISTIC & DIGESTIBLE METRICS:
+   - Do NOT use exaggerated, implausible, or excessively high-fi metrics (such as "saved $20M in costs" or "improved response times by 99%" on a side project or mid-level job) that would trigger suspicion from a recruiter.
+   - Instead, use realistic, believable, and digestible metrics (e.g., "improved query execution times by 15-20%", "achieved 90%+ unit test coverage", "reduced API latency by 120ms", "boosted page load speed by 25%", "successfully managed a repository with 50+ active daily commits"). Keep them grounded, context-appropriate, and professional.
+
+CANDIDATE RESUME (JSON FORMAT):
+${AtsResumeJson}
+
+RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, just the raw JSON structure):
 {
   "name": "Candidate Full Name",
-  "atsScore": score of new resume in number,
+  "atsScore": 98,
   "contact": {
     "phone": "+91-XXXXXXXXXX",
     "email": "email@example.com",
     "linkedin": "[linkedin.com/in/profile](https://linkedin.com/in/profile)",
     "github": "[github.com/username](https://github.com/username)",
-    "portfolio": "https://anyName",
-    "codingprofile": "https://...",
+    "portfolio": "https://...",
+    "codingprofile": "https://..."
   },
-  "summary": "High-impact, keyword-rich professional summary mirroring the JD requirements.",
+  "summary": "Detailed, high-impact, keyword-rich professional summary mirroring the target JD and aligning with the company.",
   "skills": [
     {
-      "category": "Frontend",
-      "items": "React.js, Redux, [INJECT JD KEYWORDS HERE]"
+      "category": "Frontend/Backend/Database/DevOps/Languages etc.",
+      "items": "React.js, Redux, and other key target skills extracted from the JD"
     }
   ],
   "experience": [
     {
       "company": "Company Name",
-      "location": "City",
-      "role": "Role",
+      "location": "Location",
+      "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "Strong ATS optimized bullet highlighting JD alignment and metrics."
+        "First highly detailed, ATS-keyword-optimized bullet point aligned with the target JD and company using a realistic, digestible metric.",
+        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
+        "Third detailed bullet point explaining problem-solving and collaboration details.",
+        "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
       ]
     }
   ],
   "projects": [
     {
       "name": "Project Name",
-      "technologies": "[3-4 most relevent technologies used]",
+      "technologies": "React, Node.js, MongoDB, TailwindCSS, etc.",
       "github": "https://github.com/...",
       "liveLink": "https://...",
       "bullets": [
-        "Engineered [feature] utilizing [JD Keyword] to solve [problem], achieving [realistic metric].",
-        "Enhanced system performance by integrating [JD Skill/Tool]..."
+        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using JD-specific keywords.",
+        "Second detailed project bullet outlining technologies, APIs, database integration, or state management details.",
+        "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
+        "Fourth detailed project bullet (highly recommended for depth) demonstrating specific implementation challenges overcome."
       ]
     }
   ],
   "achievements": [
-    "Achievement text"
+    "Achievement text aligned with industry success and target keywords"
   ],
   "education": [
     {
       "institution": "University Name",
       "location": "City",
-      "degree": "Degree Name | CGPA: X.X",
+      "degree": "Degree Name | CGPA: X.X or Percentage",
       "dates": "Month Year - Month Year"
     }
   ]

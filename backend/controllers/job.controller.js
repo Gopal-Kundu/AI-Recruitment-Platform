@@ -64,13 +64,16 @@ const postJob = async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    user.postedJobs.push(job._id);
-    await user.save();
-    await user.populate("postedJobs");
-    await user.populate("appliedJobs");
-    await user.populate("savedJobs");
-    await user.populate("createdCompanies");
-    user.password = undefined;
+    if (user) {
+      if (!user.postedJobs) user.postedJobs = [];
+      user.postedJobs.push(job._id);
+      await user.save();
+      await user.populate("postedJobs");
+      await user.populate("appliedJobs");
+      await user.populate("savedJobs");
+      await user.populate("createdCompanies");
+      user.password = undefined;
+    }
     return res.status(201).json({
       message: "Job posted successfully",
       success: true,
@@ -263,22 +266,28 @@ const approve = async (req, res) => {
       });
     }
 
-    job.rejectedApplicant = job.rejectedApplicant.filter(
-      (userId) => userId.toString() !== id
+    job.rejectedApplicant = (job.rejectedApplicant || []).filter(
+      (userId) => userId && userId.toString() !== id
     );
 
     const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
+    if (!job.approvedApplicant) job.approvedApplicant = [];
     if (!job.approvedApplicant.includes(id)) {
       job.approvedApplicant.push(id);
       await job.save();
 
-
-
-      user.rejectedJobs = user.rejectedJobs.filter(
-        (jobIds) => jobIds.toString() !== jobId
+      user.rejectedJobs = (user.rejectedJobs || []).filter(
+        (jobIds) => jobIds && jobIds.toString() !== jobId
       );
 
+      if (!user.approvedJobs) user.approvedJobs = [];
       if (!user.approvedJobs.includes(jobId)) {
         user.approvedJobs.push(jobId);
       }
@@ -287,15 +296,15 @@ const approve = async (req, res) => {
     }
 
     //Send Notification to User.
-    let notificationSchemaId = user.notifications;
-    let notificationSchema = await Notification.findById(notificationSchemaId);
+    let notificationSchemaId = user?.notifications;
+    let notificationSchema = notificationSchemaId ? await Notification.findById(notificationSchemaId) : null;
 
     if (!notificationSchema) {
       const newNotification = await Notification.create({
         allMessages: [{
-          message: `${job.company} accepted your application for role ${job.title}`,
+          message: `${job?.company || ''} accepted your application for role ${job?.title || ''}`,
           time: new Date(),
-          companyLogo: job.logo,
+          companyLogo: job?.logo || '',
         }],
         newMessageCount: 1,
       })
@@ -303,16 +312,16 @@ const approve = async (req, res) => {
       await user.save();
       await newNotification.save();
     } else {
+      if (!notificationSchema.allMessages) notificationSchema.allMessages = [];
       notificationSchema.allMessages.push({
-        message: `${job.company} accepted your application for role ${job.title}`,
+        message: `${job?.company || ''} accepted your application for role ${job?.title || ''}`,
         time: new Date(),
-        companyLogo: job.logo,
+        companyLogo: job?.logo || '',
       });
 
-      notificationSchema.newMessageCount += 1;
+      notificationSchema.newMessageCount = (notificationSchema.newMessageCount || 0) + 1;
       await notificationSchema.save();
     }
-
 
     return res.status(200).json({
       success: true,
@@ -348,32 +357,40 @@ const reject = async (req, res) => {
       });
     }
 
-    job.approvedApplicant = job.approvedApplicant.filter(
-      (userId) => userId.toString() !== id
+    job.approvedApplicant = (job.approvedApplicant || []).filter(
+      (userId) => userId && userId.toString() !== id
     );
-      const user = await User.findById(id);
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!job.rejectedApplicant) job.rejectedApplicant = [];
     if (!job.rejectedApplicant.includes(id)) {
       job.rejectedApplicant.push(id);
       await job.save();
 
-      user.approvedJobs = user.approvedJobs.filter(
-        (jobIds) => jobIds.toString() !== jobId
+      user.approvedJobs = (user.approvedJobs || []).filter(
+        (jobIds) => jobIds && jobIds.toString() !== jobId
       );
+      if (!user.rejectedJobs) user.rejectedJobs = [];
       user.rejectedJobs.push(jobId);
       await user.save();
     }
 
-
     //Send Notification to User.
-    let notificationSchemaId = user.notifications;
-    let notificationSchema = await Notification.findById(notificationSchemaId);
+    let notificationSchemaId = user?.notifications;
+    let notificationSchema = notificationSchemaId ? await Notification.findById(notificationSchemaId) : null;
 
     if (!notificationSchema) {
       const newNotification = await Notification.create({
         allMessages: [{
-          message: `${job.company} rejected your application for role ${job.title}`,
+          message: `${job?.company || ''} rejected your application for role ${job?.title || ''}`,
           time: new Date(),
-          companyLogo: job.logo,
+          companyLogo: job?.logo || '',
         }],
         newMessageCount: 1,
       })
@@ -381,13 +398,14 @@ const reject = async (req, res) => {
       await user.save();
       await newNotification.save();
     } else {
+      if (!notificationSchema.allMessages) notificationSchema.allMessages = [];
       notificationSchema.allMessages.push({
-        message: `${job.company} rejected your application for role ${job.title}`,
+        message: `${job?.company || ''} rejected your application for role ${job?.title || ''}`,
         time: new Date(),
-        companyLogo: job.logo,
+        companyLogo: job?.logo || '',
       });
 
-      notificationSchema.newMessageCount += 1;
+      notificationSchema.newMessageCount = (notificationSchema.newMessageCount || 0) + 1;
       await notificationSchema.save();
     }
 
@@ -511,15 +529,15 @@ const getJobsByAiTitles = async (req, res) => {
     }
 
     // If recomend field has jobs and we are not refreshing, return saved jobs immediately
-    if (!refresh && user.recomend && user.recomend.length > 0) {
+    if (!refresh && user?.recomend && user?.recomend?.length > 0) {
       return res.status(200).json({ success: true, jobs: user.recomend });
     }
 
     if (!skills) {
-      skills = user.profile?.skills || "";
+      skills = user?.profile?.skills || "";
     }
     if (!resumeLink) {
-      resumeLink = user.profile?.resume || "";
+      resumeLink = user?.profile?.resume || "";
     }
 
     if (!skills && !resumeLink) {
@@ -542,16 +560,16 @@ User Resume Text: ${resumeText || ""}`;
       if (matchedIds && matchedIds.length > 0) {
         const jobs = await Job.find({ _id: { $in: matchedIds } });
         // Sort the jobs to maintain the Pinecone relevance ordering
-        const jobMap = new Map(jobs.map(job => [job._id.toString(), job]));
+        const jobMap = new Map(jobs.map(job => [job?._id?.toString() || '', job]));
         const orderedJobs = matchedIds
           .map(id => jobMap.get(id))
           .filter(Boolean);
 
-        user.recomend = orderedJobs.map(job => job._id);
+        user.recomend = orderedJobs.map(job => job?._id);
         await user.save();
 
         const updatedUser = await User.findById(userId).populate("recomend");
-        return res.status(200).json({ success: true, jobs: updatedUser.recomend });
+        return res.status(200).json({ success: true, jobs: updatedUser?.recomend || [] });
       }
     } catch (pineconeErr) {
       console.error("Pinecone recommendation failed, falling back to Gemini text keywords:", pineconeErr.message);
@@ -586,12 +604,12 @@ Task:
       const jobs = await Job.find({ $or: regexQueries });
 
       if (jobs && jobs.length > 0) {
-        const jobIds = jobs.map(job => job._id);
+        const jobIds = jobs.map(job => job?._id);
 
         if (!user.recomend) user.recomend = [];
 
         jobIds.forEach(id => {
-          if (!user.recomend.includes(id)) {
+          if (id && !user.recomend.includes(id)) {
             user.recomend.push(id);
           }
         });
@@ -599,7 +617,7 @@ Task:
         await user.save();
 
         const updatedUser = await User.findById(userId).populate("recomend");
-        return res.status(200).json({ success: true, jobs: updatedUser.recomend });
+        return res.status(200).json({ success: true, jobs: updatedUser?.recomend || [] });
       }
 
       return res.status(200).json({ success: true, jobs: [] });
