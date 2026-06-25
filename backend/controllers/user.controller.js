@@ -938,7 +938,7 @@ const analyzeExistingResumeForJd = async (req, res) => {
     const jobDescText = jdResume.jobDescription;
 
     const prompt = `
-You are an expert ATS (Applicant Tracking System) parser and career coach.
+You are an expert resume analyzer and career coach.
 Analyze the user's resume against the target Job Description.
 
 User Resume Text:
@@ -1036,26 +1036,26 @@ const generateAtsResume = async (req, res) => {
     const jobDescText = jdResume.jobDescription;
 
     const jsonPrompt = `
-You are an expert Applicant Tracking System (ATS) optimization specialist and a veteran recruiter. Your task is to rewrite the candidate's resume so that it aligns COMPLETELY with the target Job Description and Company (if provided). Focus on generating a highly detailed, comprehensive, and keyword-rich resume that passes advanced ATS filters with a near-perfect match rate.
+You are an expert resume writer and career coach. Your task is to rewrite the candidate's resume so that it aligns COMPLETELY with the target Job Description and Company (if provided). Tailor the resume to match the job description and do not add any extra info or sections.
 
 TARGET COMPANY NAME: ${jdResume.companyName || 'Not Specified'}
 TARGET JOB DESCRIPTION:
 ${jobDescText}
 
-INSTRUCTIONS FOR ATS OPTIMIZATION:
-1. COMPLETE ALIGNMENT & KEYWORDS:
-   - Carefully extract all technical skills, soft skills, domain keywords, tools, frameworks, methodologies, and terminology from the Target Job Description.
-   - Infuse these strong keywords naturally but heavily throughout the professional summary, technical skills categories, experience bullet points, and projects.
-   - If a Target Company Name is provided, tailor the resume's tone, emphasis, and focus areas to align with the company's industry, culture, tech stack, and goals.
+INSTRUCTIONS FOR RESUME TAILORING:
+1. COMPLETE ALIGNMENT:
+   - Carefully extract relevant technical skills, soft skills, tools, frameworks, and domain-specific terminology from the Target Job Description.
+   - Tailor the professional summary, technical skills categories, experience bullet points, and projects to align with the target job requirements.
+   - If a Target Company Name is provided, align the resume's tone and focus areas with the company's industry and goals.
 
-2. DEPTH & DETAIL REQUIREMENT:
-   - Ensure the resume is extremely detailed and robust. Avoid high-level summaries or brief bullet points.
-   - For every single role in "experience" and project in "projects", expand and rewrite their descriptions to explain what was built, how it was built (technologies, architecture, design decisions), and the value it delivered.
-   - Every experience and project MUST have at least 3 to 4 detailed, fully-formed bullet points. Do NOT leave them empty, condensed, or stubbed.
+2. DEPTH & DETAIL:
+   - Ensure the resume is detailed and robust.
+   - For every role in "experience" and project in "projects", rewrite their descriptions to explain what was built, how it was built (using relevant technologies and tools), and the value it delivered.
+   - Every experience and project must have at least 3 to 4 detailed, fully-formed bullet points.
+   - For each project in the projects section, do NOT include a separate technologies used field/key. Instead, integrate the technologies and tools used directly into the bullet points of the projects.
 
-3. REALISTIC & DIGESTIBLE METRICS:
-   - Do NOT use exaggerated, implausible, or excessively high-fi metrics (such as "saved $20M in costs" or "improved response times by 99%" on a side project or mid-level job) that would trigger suspicion from a recruiter.
-   - Instead, use realistic, believable, and digestible metrics (e.g., "improved query execution times by 15-20%", "achieved 90%+ unit test coverage", "reduced API latency by 120ms", "boosted page load speed by 25%", "successfully managed a repository with 50+ active daily commits"). Keep them grounded, context-appropriate, and professional.
+3. REALISTIC & ACCURATE:
+   - Keep all achievements, descriptions, and metrics realistic, believable, and grounded. Do not exaggerate or add implausible details.
 
 CANDIDATE RESUME:
 ${resumeText}
@@ -1075,7 +1075,7 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
     "portfolio": "https://...",
     "codingprofile": "https://..."
   },
-  "summary": "Detailed, high-impact, keyword-rich professional summary mirroring the target JD and aligning with the company.",
+  "summary": "Detailed, high-impact professional summary mirroring the target JD and aligning with the company.",
   "skills": [
     {
       "category": "Frontend/Backend/Database/DevOps/Languages etc.",
@@ -1089,7 +1089,7 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "First highly detailed, ATS-keyword-optimized bullet point aligned with the target JD and company using a realistic, digestible metric.",
+        "First highly detailed bullet point aligned with the target JD and company using a realistic, digestible metric.",
         "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
         "Third detailed bullet point explaining problem-solving and collaboration details.",
         "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
@@ -1099,14 +1099,13 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
   "projects": [
     {
       "name": "Project Name",
-      "technologies": "React, Node.js, MongoDB, TailwindCSS, etc.",
       "github": "https://github.com/...",
       "liveLink": "https://...",
       "bullets": [
-        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using JD-specific keywords.",
-        "Second detailed project bullet outlining technologies, APIs, database integration, or state management details.",
+        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using React and Node.js.",
+        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented.",
         "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
-        "Fourth detailed project bullet (highly recommended for depth) demonstrating specific implementation challenges overcome."
+        "Fourth detailed project bullet demonstrating specific implementation challenges overcome."
       ]
     }
   ],
@@ -1375,7 +1374,7 @@ const generateResumePdf = async (req, res) => {
         body += `<div style="margin-bottom:6px">
           <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:${fs}pt; margin-bottom:1px">
             ${nameAndLinks}
-            <span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj?.technologies || ''}</span>
+            ${proj?.technologies ? `<span style="font-weight:normal; font-size:${fs - 0.5}pt">${proj.technologies}</span>` : ''}
           </div>
           ${bulletList(proj?.bullets)}
         </div>`;
@@ -1597,26 +1596,26 @@ const optimizeJdResumeJson = async (req, res) => {
     const jobDescText = jdResume.jobDescription.slice(0, 3500);
 
     const jsonPrompt = `
-You are an expert Applicant Tracking System (ATS) optimization specialist and a veteran recruiter. Your task is to optimize the candidate's existing resume JSON so that it aligns COMPLETELY with the target Job Description and Company (if provided). Focus on generating a highly detailed, comprehensive, and keyword-rich resume that passes advanced ATS filters with a near-perfect match rate.
+You are an expert resume writer and career coach. Your task is to optimize the candidate's existing resume JSON so that it aligns COMPLETELY with the target Job Description and Company (if provided). Tailor the resume to match the job description and do not add any extra info or sections.
 
 TARGET COMPANY NAME: ${jdResume.companyName || 'Not Specified'}
 TARGET JOB DESCRIPTION:
 ${jobDescText}
 
-INSTRUCTIONS FOR ATS OPTIMIZATION:
-1. COMPLETE ALIGNMENT & KEYWORDS:
-   - Carefully extract all technical skills, soft skills, domain keywords, tools, frameworks, methodologies, and terminology from the Target Job Description.
-   - Infuse these strong keywords naturally but heavily throughout the professional summary, technical skills categories, experience bullet points, and projects.
-   - If a Target Company Name is provided, tailor the resume's tone, emphasis, and focus areas to align with the company's industry, culture, tech stack, and goals.
+INSTRUCTIONS FOR RESUME TAILORING:
+1. COMPLETE ALIGNMENT:
+   - Carefully extract relevant technical skills, soft skills, tools, frameworks, and domain-specific terminology from the Target Job Description.
+   - Tailor the professional summary, technical skills categories, experience bullet points, and projects to align with the target job requirements.
+   - If a Target Company Name is provided, tailor the resume's tone and focus areas to align with the company's industry and goals.
 
-2. DEPTH & DETAIL REQUIREMENT:
-   - Ensure the resume is extremely detailed and robust. Avoid high-level summaries or brief bullet points.
-   - For every single role in "experience" and project in "projects", expand and rewrite their descriptions to explain what was built, how it was built (technologies, architecture, design decisions), and the value it delivered.
-   - Every experience and project MUST have at least 3 to 4 detailed, fully-formed bullet points. Do NOT leave them empty, condensed, or stubbed.
+2. DEPTH & DETAIL:
+   - Ensure the resume is detailed and robust.
+   - For every role in "experience" and project in "projects", rewrite their descriptions to explain what was built, how it was built (using relevant technologies and tools), and the value it delivered.
+   - Every experience and project must have at least 3 to 4 detailed, fully-formed bullet points.
+   - For each project in the projects section, do NOT include a separate technologies used field/key. Instead, integrate the technologies and tools used directly into the bullet points of the projects.
 
-3. REALISTIC & DIGESTIBLE METRICS:
-   - Do NOT use exaggerated, implausible, or excessively high-fi metrics (such as "saved $20M in costs" or "improved response times by 99%" on a side project or mid-level job) that would trigger suspicion from a recruiter.
-   - Instead, use realistic, believable, and digestible metrics (e.g., "improved query execution times by 15-20%", "achieved 90%+ unit test coverage", "reduced API latency by 120ms", "boosted page load speed by 25%", "successfully managed a repository with 50+ active daily commits"). Keep them grounded, context-appropriate, and professional.
+3. REALISTIC & ACCURATE:
+   - Keep all achievements, descriptions, and metrics realistic, believable, and grounded. Do not exaggerate or add implausible details.
 
 CANDIDATE RESUME (JSON FORMAT):
 ${AtsResumeJson}
@@ -1633,7 +1632,7 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
     "portfolio": "https://...",
     "codingprofile": "https://..."
   },
-  "summary": "Detailed, high-impact, keyword-rich professional summary mirroring the target JD and aligning with the company.",
+  "summary": "Detailed, high-impact professional summary mirroring the target JD and aligning with the company.",
   "skills": [
     {
       "category": "Frontend/Backend/Database/DevOps/Languages etc.",
@@ -1647,7 +1646,7 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "First highly detailed, ATS-keyword-optimized bullet point aligned with the target JD and company using a realistic, digestible metric.",
+        "First highly detailed bullet point aligned with the target JD and company using a realistic, digestible metric.",
         "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
         "Third detailed bullet point explaining problem-solving and collaboration details.",
         "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
@@ -1657,14 +1656,13 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
   "projects": [
     {
       "name": "Project Name",
-      "technologies": "React, Node.js, MongoDB, TailwindCSS, etc.",
       "github": "https://github.com/...",
       "liveLink": "https://...",
       "bullets": [
-        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using JD-specific keywords.",
-        "Second detailed project bullet outlining technologies, APIs, database integration, or state management details.",
+        "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using React and Node.js.",
+        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented.",
         "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
-        "Fourth detailed project bullet (highly recommended for depth) demonstrating specific implementation challenges overcome."
+        "Fourth detailed project bullet demonstrating specific implementation challenges overcome."
       ]
     }
   ],

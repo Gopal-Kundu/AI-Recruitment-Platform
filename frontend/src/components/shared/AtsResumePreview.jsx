@@ -358,9 +358,11 @@ const AtsResumePreview = ({ resumeData, baseFontSize = 8.5, baseFontFamily = 'Lo
                     </>
                   )}
                 </span>
-                <span style={{ fontWeight: 'normal', fontSize: `${baseFontSize - 0.5}pt` }}>
-                  {proj?.technologies}
-                </span>
+                {proj?.technologies && (
+                  <span style={{ fontWeight: 'normal', fontSize: `${baseFontSize - 0.5}pt` }}>
+                    {proj?.technologies}
+                  </span>
+                )}
               </div>
               {proj?.bullets?.map((b, j) => (
                 <div key={j} style={{ fontSize: `${baseFontSize - 0.5}pt`, paddingLeft: '12px' }}>
