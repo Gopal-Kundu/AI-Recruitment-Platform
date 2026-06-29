@@ -210,7 +210,7 @@ async function applyHandler() {
         </div>
       </div>
 
-      <p className="text-sm text-gray-600 h-22 leading-relaxed overflow-hidden">
+      <p className="select-none text-sm text-gray-600 h-22 leading-relaxed overflow-hidden">
         {description}
       </p>
 
