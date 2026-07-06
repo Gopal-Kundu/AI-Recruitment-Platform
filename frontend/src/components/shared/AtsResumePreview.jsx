@@ -187,7 +187,7 @@ const AtsResumePreview = ({ resumeData, baseFontSize = 8.5, baseFontFamily = 'Lo
         background: '#fff',
         padding: '36px 48px',
         width: '210mm',
-        minHeight: '297mm',
+        height: '288mm',
         boxSizing: 'border-box',
       }}
     >

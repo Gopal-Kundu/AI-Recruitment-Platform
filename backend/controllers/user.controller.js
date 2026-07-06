@@ -1043,19 +1043,21 @@ TARGET JOB DESCRIPTION:
 ${jobDescText}
 
 INSTRUCTIONS FOR RESUME TAILORING:
-1. COMPLETE ALIGNMENT:
+1. COMPLETE ALIGNMENT & INTEGRATION:
    - Carefully extract relevant technical skills, soft skills, tools, frameworks, and domain-specific terminology from the Target Job Description.
-   - Tailor the professional summary, technical skills categories, experience bullet points, and projects to align with the target job requirements.
+   - For every bullet point in the candidate's experience and projects: Rewrite them to integrate keywords and strong action verbs from the target Job Description.
+   - Keep all original projects, work experiences, and education entries from the candidate's resume intact. Do NOT omit, rename, merge, or cut any projects or experiences.
    - If a Target Company Name is provided, align the resume's tone and focus areas with the company's industry and goals.
 
-2. DEPTH & DETAIL:
-   - Ensure the resume is detailed and robust.
-   - For every role in "experience" and project in "projects", rewrite their descriptions to explain what was built, how it was built (using relevant technologies and tools), and the value it delivered.
-   - Every experience and project must have at least 3 to 4 detailed, fully-formed bullet points.
-   - For each project in the projects section, do NOT include a separate technologies used field/key. Instead, integrate the technologies and tools used directly into the bullet points of the projects.
+2. PRESERVE AND LIMIT BULLETS (CRITICAL):
+   - You MUST generate EXACTLY the same number of bullet points for each experience and project as present in the candidate's original resume (up to a maximum of 10 bullet points per experience/project).
+   - Do NOT omit, summarize, combine, or discard any bullet points/lines from the candidate's original experience or projects. Every single line/bullet from the original resume must have a corresponding, rewritten, ATS-optimized version in the JSON output, with a strict 1-to-1 mapping.
+   - The example output structure below contains a truncated array of bullets just as a schema reference. DO NOT mimic the count in the example JSON; keep all original bullet lines up to the 10-line limit.
 
-3. REALISTIC & ACCURATE:
-   - Keep all achievements, descriptions, and metrics realistic, believable, and grounded. Do not exaggerate or add implausible details.
+3. MANDATORY 'technologies' FIELD FOR PROJECTS:
+   - For every single project in the 'projects' array, you MUST include a 'technologies' field. This field is strictly mandatory and must not be omitted, null, or empty.
+   - List a maximum of 4 top technologies/tools used as a comma-separated string (e.g., 'React, Node.js, Express, MongoDB'). Do not exceed 4 technologies.
+   - If the candidate's original project does not list technologies, you MUST infer the top 4 most relevant technologies based on the project's description and bullet points.
 
 CANDIDATE RESUME:
 ${resumeText}
@@ -1089,10 +1091,8 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "First highly detailed bullet point aligned with the target JD and company using a realistic, digestible metric.",
-        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
-        "Third detailed bullet point explaining problem-solving and collaboration details.",
-        "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
+        "First highly detailed bullet point aligned with the target JD and company.",
+        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities."
       ]
     }
   ],
@@ -1101,11 +1101,10 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "name": "Project Name",
       "github": "https://github.com/...",
       "liveLink": "https://...",
+      "technologies": "React, Node.js, Express, MongoDB",
       "bullets": [
         "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using React and Node.js.",
-        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented.",
-        "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
-        "Fourth detailed project bullet demonstrating specific implementation challenges overcome."
+        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented."
       ]
     }
   ],
@@ -1603,19 +1602,21 @@ TARGET JOB DESCRIPTION:
 ${jobDescText}
 
 INSTRUCTIONS FOR RESUME TAILORING:
-1. COMPLETE ALIGNMENT:
+1. COMPLETE ALIGNMENT & INTEGRATION:
    - Carefully extract relevant technical skills, soft skills, tools, frameworks, and domain-specific terminology from the Target Job Description.
-   - Tailor the professional summary, technical skills categories, experience bullet points, and projects to align with the target job requirements.
+   - For every bullet point in the candidate's experience and projects: Rewrite them to integrate keywords and strong action verbs from the target Job Description.
+   - Keep all original projects, work experiences, and education entries from the candidate's resume intact. Do NOT omit, rename, merge, or cut any projects or experiences.
    - If a Target Company Name is provided, tailor the resume's tone and focus areas to align with the company's industry and goals.
 
-2. DEPTH & DETAIL:
-   - Ensure the resume is detailed and robust.
-   - For every role in "experience" and project in "projects", rewrite their descriptions to explain what was built, how it was built (using relevant technologies and tools), and the value it delivered.
-   - Every experience and project must have at least 3 to 4 detailed, fully-formed bullet points.
-   - For each project in the projects section, do NOT include a separate technologies used field/key. Instead, integrate the technologies and tools used directly into the bullet points of the projects.
+2. PRESERVE AND LIMIT BULLETS (CRITICAL):
+   - You MUST generate EXACTLY the same number of bullet points for each experience and project as present in the candidate's original resume (up to a maximum of 10 bullet points per experience/project).
+   - Do NOT omit, summarize, combine, or discard any bullet points/lines from the candidate's original experience or projects. Every single line/bullet from the original resume must have a corresponding, rewritten, ATS-optimized version in the JSON output, with a strict 1-to-1 mapping.
+   - The example output structure below contains a truncated array of bullets just as a schema reference. DO NOT mimic the count in the example JSON; keep all original bullet lines up to the 10-line limit.
 
-3. REALISTIC & ACCURATE:
-   - Keep all achievements, descriptions, and metrics realistic, believable, and grounded. Do not exaggerate or add implausible details.
+3. MANDATORY 'technologies' FIELD FOR PROJECTS:
+   - For every single project in the 'projects' array, you MUST include a 'technologies' field. This field is strictly mandatory and must not be omitted, null, or empty.
+   - List a maximum of 4 top technologies/tools used as a comma-separated string (e.g., 'React, Node.js, Express, MongoDB'). Do not exceed 4 technologies.
+   - If the candidate's original project does not list technologies, you MUST infer the top 4 most relevant technologies based on the project's description and bullet points.
 
 CANDIDATE RESUME (JSON FORMAT):
 ${AtsResumeJson}
@@ -1646,10 +1647,8 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "role": "Role Title",
       "dates": "Month Year - Month Year",
       "bullets": [
-        "First highly detailed bullet point aligned with the target JD and company using a realistic, digestible metric.",
-        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities.",
-        "Third detailed bullet point explaining problem-solving and collaboration details.",
-        "Fourth detailed bullet point demonstrating impact using digestible, believable metrics."
+        "First highly detailed bullet point aligned with the target JD and company.",
+        "Second detailed bullet point detailing technologies, design decisions, and real-world responsibilities."
       ]
     }
   ],
@@ -1658,11 +1657,10 @@ RETURN EXACTLY THIS JSON FORMAT (No extra text, no markdown block formatting, ju
       "name": "Project Name",
       "github": "https://github.com/...",
       "liveLink": "https://...",
+      "technologies": "React, Node.js, Express, MongoDB",
       "bullets": [
         "First detailed project bullet explaining the architecture, core feature engineered, and the problem solved using React and Node.js.",
-        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented.",
-        "Third detailed project bullet describing optimization, testing, deployment, and a digestible metric of success.",
-        "Fourth detailed project bullet demonstrating specific implementation challenges overcome."
+        "Second detailed project bullet outlining how specific technologies, APIs, database integration (such as MongoDB), or state management details were implemented."
       ]
     }
   ],

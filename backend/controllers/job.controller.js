@@ -528,9 +528,9 @@ const getJobsByAiTitles = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // If recomend field has jobs and we are not refreshing, return saved jobs immediately
+    // If recomend field has jobs and we are not refreshing, return saved jobs immediately (limited to 15)
     if (!refresh && user?.recomend && user?.recomend?.length > 0) {
-      return res.status(200).json({ success: true, jobs: user.recomend });
+      return res.status(200).json({ success: true, jobs: user.recomend.slice(0, 15) });
     }
 
     if (!skills) {
@@ -565,11 +565,11 @@ User Resume Text: ${resumeText || ""}`;
           .map(id => jobMap.get(id))
           .filter(Boolean);
 
-        user.recomend = orderedJobs.map(job => job?._id);
+        user.recomend = orderedJobs.map(job => job?._id).slice(0, 15);
         await user.save();
 
         const updatedUser = await User.findById(userId).populate("recomend");
-        return res.status(200).json({ success: true, jobs: updatedUser?.recomend || [] });
+        return res.status(200).json({ success: true, jobs: (updatedUser?.recomend || []).slice(0, 15) });
       }
     } catch (pineconeErr) {
       console.error("Pinecone recommendation failed, falling back to Gemini text keywords:", pineconeErr.message);
@@ -596,28 +596,21 @@ Task:
         return res.status(200).json({ success: true, jobs: [] });
       }
 
-      // Keyword/partial matching using regex on job titles
+      // Keyword/partial matching using regex on job titles (limited to 15)
       const regexQueries = jobTitles.map(title => ({
         title: { $regex: title, $options: "i" }
       }));
 
-      const jobs = await Job.find({ $or: regexQueries });
+      const jobs = await Job.find({ $or: regexQueries }).limit(15);
 
       if (jobs && jobs.length > 0) {
-        const jobIds = jobs.map(job => job?._id);
+        const jobIds = jobs.map(job => job?._id).slice(0, 15);
 
-        if (!user.recomend) user.recomend = [];
-
-        jobIds.forEach(id => {
-          if (id && !user.recomend.includes(id)) {
-            user.recomend.push(id);
-          }
-        });
-
+        user.recomend = jobIds;
         await user.save();
 
         const updatedUser = await User.findById(userId).populate("recomend");
-        return res.status(200).json({ success: true, jobs: updatedUser?.recomend || [] });
+        return res.status(200).json({ success: true, jobs: (updatedUser?.recomend || []).slice(0, 15) });
       }
 
       return res.status(200).json({ success: true, jobs: [] });
