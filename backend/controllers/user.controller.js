@@ -1183,25 +1183,25 @@ const generateResumePdf = async (req, res) => {
 
     const getFontFamilyCSS = (fontName) => {
       switch(fontName) {
-        case 'Inter': return '"Inter", sans-serif';
-        case 'Roboto': return '"Roboto", sans-serif';
-        case 'Merriweather': return '"Merriweather", serif';
-        case 'Open Sans': return '"Open Sans", sans-serif';
-        case 'EB Garamond': return '"EB Garamond", serif';
-        case 'Montserrat': return '"Montserrat", sans-serif';
-        case 'Poppins': return '"Poppins", sans-serif';
-        case 'Lato': return '"Lato", sans-serif';
-        case 'Ubuntu': return '"Ubuntu", sans-serif';
-        case 'Nunito': return '"Nunito", sans-serif';
-        case 'Raleway': return '"Raleway", sans-serif';
-        case 'PT Sans': return '"PT Sans", sans-serif';
-        case 'PT Serif': return '"PT Serif", serif';
-        case 'Playfair Display': return '"Playfair Display", serif';
-        case 'Fira Sans': return '"Fira Sans", sans-serif';
-        case 'Oswald': return '"Oswald", sans-serif';
+        case 'Inter': return "'Inter', sans-serif";
+        case 'Roboto': return "'Roboto', sans-serif";
+        case 'Merriweather': return "'Merriweather', serif";
+        case 'Open Sans': return "'Open Sans', sans-serif";
+        case 'EB Garamond': return "'EB Garamond', serif";
+        case 'Montserrat': return "'Montserrat', sans-serif";
+        case 'Poppins': return "'Poppins', sans-serif";
+        case 'Lato': return "'Lato', sans-serif";
+        case 'Ubuntu': return "'Ubuntu', sans-serif";
+        case 'Nunito': return "'Nunito', sans-serif";
+        case 'Raleway': return "'Raleway', sans-serif";
+        case 'PT Sans': return "'PT Sans', sans-serif";
+        case 'PT Serif': return "'PT Serif', serif";
+        case 'Playfair Display': return "'Playfair Display', serif";
+        case 'Fira Sans': return "'Fira Sans', sans-serif";
+        case 'Oswald': return "'Oswald', sans-serif";
         case 'Lora':
         default:
-          return '"Lora", Georgia, serif';
+          return "'Lora', Georgia, serif";
       }
     };
 
@@ -1228,7 +1228,7 @@ const generateResumePdf = async (req, res) => {
       return `<a href="${url}" target="_blank" style="text-decoration:none; color:inherit; font-family:${fontFamily}">${cleanText}</a>`;
     };
 
-    const fs = baseFontSize;
+    const fs = Number(baseFontSize);
     const c = resumeData?.contact || {};
     const contactItems = [];
     if (c?.phone) {
