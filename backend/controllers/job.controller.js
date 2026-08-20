@@ -220,12 +220,19 @@ const getApplicants = async (req, res) => {
 };
 
 const searchJobs = async (req, res) => {
-  const { query } = req.query;
-  if (!query) {
-    return res.status(400).json({ message: "No Query" });
+  const { query, pageno, page } = req.query;
+  if (!query || query.trim() === "") {
+    return res.status(200).json({
+      success: true,
+      countJobs: 0,
+      jobs: [],
+    });
   }
+  const currentPage = parseInt(pageno || page) || 1;
+  const limit = 8;
+
   try {
-    const jobs = await Job.find({
+    const filterCriteria = {
       $or: [
         { title: { $regex: query, $options: "i" } },
         { company: { $regex: query, $options: "i" } },
@@ -234,10 +241,17 @@ const searchJobs = async (req, res) => {
         { requirement: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
       ],
-    });
+    };
+
+    const countJobs = await Job.countDocuments(filterCriteria);
+    const jobs = await Job.find(filterCriteria)
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * limit)
+      .limit(limit);
 
     res.status(200).json({
       success: true,
+      countJobs,
       jobs,
     });
   } catch (error) {

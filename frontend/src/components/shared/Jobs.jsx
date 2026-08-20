@@ -3,7 +3,7 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import JobCard from "./Jobcard";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterJobs from "../ui/FilterJobs";
 import PaginationRounded from "../ui/PaginationRounded";
@@ -17,15 +17,32 @@ export default function Jobs() {
   const navigate = useNavigate();
   const [openFilter, setOpenFilter] = useState(false);
 
-  const handleSearch = () => {
-    if (searchValue.trim() !== "") {
-      navigate(`/search?query=${searchValue.trim()}`);
+  const handleSearch = (queryVal) => {
+    const q = (typeof queryVal === "string" ? queryVal : searchValue).trim();
+    if (q) {
+      navigate(`/search?query=${encodeURIComponent(q)}`, {
+        state: { query: q },
+      });
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleSearch();
+    if (e.key === "Enter") handleSearch(searchValue);
   };
+
+
+  useEffect(() => {
+    const trimmed = searchValue.trim();
+    if (!trimmed) return;
+
+    const timer = setTimeout(() => {
+      navigate(`/search?query=${encodeURIComponent(trimmed)}`, {
+        state: { query: trimmed },
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, navigate]);
 
   return (
     <>
@@ -44,12 +61,6 @@ export default function Jobs() {
             placeholder="Search jobs..."
             className="w-2/3 h-10 p-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <button
-            onClick={handleSearch}
-            className="bg-indigo-600 text-white px-5 py-2 rounded-full hover:bg-indigo-700 transition-all"
-          >
-            Search
-          </button>
         </div>
 
         <div className="flex justify-between">
