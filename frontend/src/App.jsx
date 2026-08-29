@@ -7,14 +7,9 @@ import Jobs from "./components/shared/Jobs";
 import ResumePage from "./components/shared/ResumePage";
 import SavedJobs from "./components/shared/SavedJobs";
 import JobDescription from "./components/shared/JobDescription";
-import axios from "axios";
-import { useEffect } from "react";
-import { USER_API_END_POINT } from "./utils/address";
 import CompanyListPage from "./components/shared/CompanyListPage";
-import { useDispatch } from "react-redux";
 import ApplicationsList from "./components/shared/ApplicationList";
 import CompanyPage from "./components/shared/CompanyPage";
-import { setNotificationCount, setUser } from "./redux/authSlice";
 import ApplicationPage from "./components/ui/ApplicationPage";
 import SearchJob from "./components/shared/SearchJob";
 import ErrorPage from "./components/shared/ErrorPage";
@@ -53,28 +48,6 @@ const appRouter = createBrowserRouter([
 ]);
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const fetchUserIfLoggedIn = async () => {
-      try {
-        const res = await axios.get(`${USER_API_END_POINT}/remember`, {
-          withCredentials: true,
-        });
-        if (res.data.success) {
-          dispatch(setUser(res.data.user));
-          dispatch(
-            setNotificationCount(
-              res.data.user.notifications.newMessageCount
-            )
-          );
-        }
-      } catch (err) {}
-    };
-
-    fetchUserIfLoggedIn();
-  }, []);
-
   return <RouterProvider router={appRouter} />;
 }
 
